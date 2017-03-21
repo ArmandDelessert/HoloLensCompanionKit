@@ -26,7 +26,7 @@ For more info, see the [holographic remoting documentation](http://developer.mic
 ### Install the Remoting Player app
 
 1. On your Microsoft HoloLens, visit the Store app and search for "Remoting Player".
-2. Select the Remoting Player app.
+2. Select the [Remoting Player app](https://www.microsoft.com/store/p/holographic-remoting-player/9nblggh4sv40).
 3. Tap **Install* to start the download and install the Remoting Player app.
 
 ### Connect the remoting host sample to the Remoting Player
