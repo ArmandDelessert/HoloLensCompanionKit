@@ -84,4 +84,3 @@ namespace RemotingHostSample
         Concurrency::critical_section       m_criticalSection;
     };
 }
-

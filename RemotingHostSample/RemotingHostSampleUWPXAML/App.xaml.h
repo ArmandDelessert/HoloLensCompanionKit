@@ -21,7 +21,7 @@
 
 namespace RemotingHostSample
 {
-        /// <summary>
+    /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
     /// </summary>
     ref class App sealed

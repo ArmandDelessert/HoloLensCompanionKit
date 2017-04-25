@@ -268,6 +268,3 @@ bool RemotingHostSampleUWP::ConnectToRemoteDevice()
 
     return false;
 }
-
-
-
