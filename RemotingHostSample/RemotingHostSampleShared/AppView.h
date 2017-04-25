@@ -53,4 +53,3 @@ namespace RemotingHostSample
         bool m_isInitialized = false;
     };
 }
-
