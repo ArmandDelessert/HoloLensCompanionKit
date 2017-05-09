@@ -52,9 +52,11 @@ namespace RemotingHostSample
         void OnSwapChainPanelSizeChanged(Platform::Object^ sender, Windows::UI::Xaml::SizeChangedEventArgs^ e);
         void Key_Down(Platform::Object^ sender, Windows::UI::Xaml::Input::KeyRoutedEventArgs^ e);
         void Toggle_Preview(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
-        void Start_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
-        void Stop_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
-        void ipAddress_TextChanged(Platform::Object^ sender, Windows::UI::Xaml::Controls::TextChangedEventArgs^ e);
+		void Start_Click_HL1(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
+		void Start_Click_HL2(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
+		void Stop_Click_HL1(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
+		void Stop_Click_HL2(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
+		void ipAddress_TextChanged(Platform::Object^ sender, Windows::UI::Xaml::Controls::TextChangedEventArgs^ e);
 
         // Private methods for remoting.
         bool ConnectToRemoteDevice();
@@ -65,7 +67,7 @@ namespace RemotingHostSample
         // Resources used to render the remoting frame preview in the XAML page background.
         std::shared_ptr<DX::DeviceResourcesWindowed>        m_deviceResources;
         RemotingHostSample::AppView^                        m_appView;
-        Platform::String^                                   m_ipAddress;
+        Platform::String^                                   m_ipAddress_HL1;
         Microsoft::Holographic::HolographicStreamerHelpers^ m_streamerHelpers;
 
         int  m_width                = 0;
