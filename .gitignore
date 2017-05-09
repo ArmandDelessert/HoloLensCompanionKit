@@ -4,6 +4,7 @@ obj/
 .vs/
 *.user
 project.lock.json
+
 # PosterCalibrationSample specific ignores
 PosterCalibrationSample/Unity/.vs*/
 PosterCalibrationSample/Unity/Library*/
@@ -18,3 +19,8 @@ PosterCalibrationSample/Plugin/Plugin.VC.*
 PosterCalibrationSample/Plugin/Release*/
 PosterCalibrationSample/Plugin/Debug*/
 PosterCalibrationSample/Plugin/Packages*/
+
+# Added by Armand
+RemotingHostSample/RemotingHostSampleUWPXAML/Generated Files/
+RemotingHostSample/packages/
+RemotingHostSample/UpgradeLog.htm
