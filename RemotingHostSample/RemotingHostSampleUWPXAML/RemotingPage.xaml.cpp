@@ -52,7 +52,7 @@ using namespace Windows::UI::Xaml::Input;
 using namespace Windows::UI::Xaml::Media;
 using namespace Windows::UI::Xaml::Navigation;
 
-RemotingPage::RemotingPage()
+RemotingPage::RemotingPage(/*RemotingHostSample::AppView^ appView, bool isMain*/)
 {
     InitializeComponent();
 
@@ -79,7 +79,10 @@ RemotingPage::RemotingPage()
     swapChainPanel->SizeChanged +=
         ref new SizeChangedEventHandler(this, &RemotingPage::OnSwapChainPanelSizeChanged);
     
-    m_appView = ref new RemotingHostSample::AppView();
+//    m_appView = appView;
+	m_appView = ref new RemotingHostSample::AppView();
+
+	this->isMain = isMain;
 
     // At this point we have access to the device. 
     // We can create the device-dependent resources.
@@ -119,7 +122,9 @@ bool RemotingPage::ConnectToRemoteDevice()
         ConsoleLog(Console, L"Connecting to %s", m_ipAddress->Data());
 
         m_streamerHelpers = ref new HolographicStreamerHelpers();
-        m_appView->Initialize(m_streamerHelpers->HolographicSpace, m_streamerHelpers->RemoteSpeech);
+		if (isMain) { // IS_MAIN
+			m_appView->Initialize(m_streamerHelpers->HolographicSpace, m_streamerHelpers->RemoteSpeech);
+		}
         ComPtr<ID3D11Device4> spDevice = m_appView->GetDeviceResources()->GetD3DDevice();
         ComPtr<ID3D11DeviceContext3> spContext = m_appView->GetDeviceResources()->GetD3DDeviceContext();
         m_deviceResources->SetD3DDevice(spDevice.Get(), spContext.Get());

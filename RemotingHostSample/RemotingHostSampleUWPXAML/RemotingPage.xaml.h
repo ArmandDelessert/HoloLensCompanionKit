@@ -31,7 +31,7 @@ namespace RemotingHostSample
     public ref class RemotingPage sealed
     {
     public:
-        RemotingPage();
+        RemotingPage(/*RemotingHostSample::AppView^ appView, bool isMain*/);
         virtual ~RemotingPage();
 
         void SaveInternalState(Windows::Foundation::Collections::IPropertySet^ state);
@@ -68,6 +68,7 @@ namespace RemotingHostSample
         Platform::String^                                   m_ipAddress;
         Microsoft::Holographic::HolographicStreamerHelpers^ m_streamerHelpers;
 
+		bool isMain                 = false;
         int  m_width                = 0;
         int  m_height               = 0;
         bool m_connectedState       = false;

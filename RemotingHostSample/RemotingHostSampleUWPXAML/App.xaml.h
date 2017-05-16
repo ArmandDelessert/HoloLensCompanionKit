@@ -34,6 +34,8 @@ namespace RemotingHostSample
         void OnSuspending(Platform::Object^ sender, Windows::ApplicationModel::SuspendingEventArgs^ e);
         void OnResuming(Platform::Object ^sender, Platform::Object ^args);
         void OnNavigationFailed(Platform::Object ^sender, Windows::UI::Xaml::Navigation::NavigationFailedEventArgs ^e);
-        RemotingPage^ m_remotingPage;
+        RemotingPage^ m_remotingPage_HL1;
+		RemotingPage^ m_remotingPage_HL2;
+		RemotingHostSample::AppView^ appView;
     };
 }

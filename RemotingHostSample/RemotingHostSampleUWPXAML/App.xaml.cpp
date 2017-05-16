@@ -60,14 +60,22 @@ void App::OnLaunched(Windows::ApplicationModel::Activation::LaunchActivatedEvent
     }
 #endif
 
-    if (m_remotingPage == nullptr)
-    {
-        m_remotingPage = ref new RemotingPage();
-    }
+	if (m_remotingPage_HL1 == nullptr)
+	{
+//		appView = ref new RemotingHostSample::AppView();
+		m_remotingPage_HL1 = ref new RemotingPage(/*appView, true*/);
+	}
+
+	//if (m_remotingPage_HL2 == nullptr)
+	//{
+	//	appView = ref new RemotingHostSample::AppView();
+	//	m_remotingPage_HL2 = ref new RemotingPage(/*appView, */false);
+	//}
 
     if (e->PreviousExecutionState == ApplicationExecutionState::Terminated)
     {
-        m_remotingPage->LoadInternalState(ApplicationData::Current->LocalSettings->Values);
+		m_remotingPage_HL1->LoadInternalState(ApplicationData::Current->LocalSettings->Values);
+//		m_remotingPage_HL2->LoadInternalState(ApplicationData::Current->LocalSettings->Values);
     }
 
     auto rootFrame = dynamic_cast<Frame^>(Window::Current->Content);
@@ -120,7 +128,8 @@ void App::OnSuspending(Object^ sender, SuspendingEventArgs^ e)
     (void) sender;    // Unused parameter
     (void) e;    // Unused parameter
 
-    m_remotingPage->SaveInternalState(ApplicationData::Current->LocalSettings->Values);
+	m_remotingPage_HL1->SaveInternalState(ApplicationData::Current->LocalSettings->Values);
+//	m_remotingPage_HL2->SaveInternalState(ApplicationData::Current->LocalSettings->Values);
 }
 
 /// <summary>
@@ -133,7 +142,8 @@ void App::OnResuming(Object ^sender, Object ^args)
     (void) sender; // Unused parameter
     (void) args; // Unused parameter
 
-    m_remotingPage->LoadInternalState(ApplicationData::Current->LocalSettings->Values);
+	m_remotingPage_HL1->LoadInternalState(ApplicationData::Current->LocalSettings->Values);
+//	m_remotingPage_HL2->LoadInternalState(ApplicationData::Current->LocalSettings->Values);
 }
 
 /// <summary>
