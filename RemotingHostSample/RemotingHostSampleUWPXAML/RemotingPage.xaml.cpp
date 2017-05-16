@@ -73,10 +73,10 @@ RemotingPage::RemotingPage()
     DisplayInformation::DisplayContentsInvalidated +=
         ref new TypedEventHandler<DisplayInformation^, Object^>(this, &RemotingPage::OnDisplayContentsInvalidated);
 
-    swapChainPanel_HL1->CompositionScaleChanged += 
+    swapChainPanel->CompositionScaleChanged += 
         ref new TypedEventHandler<SwapChainPanel^, Object^>(this, &RemotingPage::OnCompositionScaleChanged);
 
-    swapChainPanel_HL1->SizeChanged +=
+    swapChainPanel->SizeChanged +=
         ref new SizeChangedEventHandler(this, &RemotingPage::OnSwapChainPanelSizeChanged);
     
     m_appView = ref new RemotingHostSample::AppView();
@@ -84,7 +84,7 @@ RemotingPage::RemotingPage()
     // At this point we have access to the device. 
     // We can create the device-dependent resources.
     m_deviceResources = std::make_shared<DX::DeviceResourcesWindowed>();
-    m_deviceResources->SetSwapChainPanel(swapChainPanel_HL1);
+    m_deviceResources->SetSwapChainPanel(swapChainPanel);
     
     Console->Text += "\n";
 }
@@ -116,7 +116,7 @@ bool RemotingPage::ConnectToRemoteDevice()
 {
     if (!m_streamerHelpers)
     {
-        ConsoleLog(Console, L"Connecting to %s", m_ipAddress_HL1->Data());
+        ConsoleLog(Console, L"Connecting to %s", m_ipAddress->Data());
 
         m_streamerHelpers = ref new HolographicStreamerHelpers();
         m_appView->Initialize(m_streamerHelpers->HolographicSpace, m_streamerHelpers->RemoteSpeech);
@@ -177,7 +177,7 @@ bool RemotingPage::ConnectToRemoteDevice()
 
                     try
                     {
-                        m_streamerHelpers->Connect(m_ipAddress_HL1->Data(), 8001);
+                        m_streamerHelpers->Connect(m_ipAddress->Data(), 8001);
                     }
                     catch (Platform::Exception^ ex)
                     {
@@ -201,7 +201,7 @@ bool RemotingPage::ConnectToRemoteDevice()
         try
         {
             ConsoleLog(Console, L"Waiting for connection...");
-            m_streamerHelpers->Connect(m_ipAddress_HL1->Data(), 8001);
+            m_streamerHelpers->Connect(m_ipAddress->Data(), 8001);
             return true;
         }
         catch (Platform::Exception^ ex)
@@ -282,7 +282,7 @@ void RemotingPage::Key_Down(Platform::Object ^ sender, Windows::UI::Xaml::Input:
 {
     if (e->Key == VirtualKey::Enter)
     {
-        Start_Click_HL1(sender, e);
+        Start_Click(sender, e);
     }
 }
 
@@ -302,7 +302,7 @@ void RemotingPage::Toggle_Preview(Platform::Object ^ sender, Windows::UI::Xaml::
     }
 }
 
-void RemotingPage::Start_Click_HL1(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
+void RemotingPage::Start_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
     {
         critical_section::scoped_lock lock(m_criticalSection);
@@ -318,55 +318,23 @@ void RemotingPage::Start_Click_HL1(Platform::Object^ sender, Windows::UI::Xaml::
         }
     }
 
-    if (!m_ipAddress_HL1)
+    if (!m_ipAddress)
     {
         ConsoleLog(Console, L"Error: Please set an IP address.");
     }
     else
     {
-        Start_HL1->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
-        ipAddress_HL1->IsEnabled = false;
+        Start->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
+        ipAddress->IsEnabled = false;
 
         while (!ConnectToRemoteDevice());
         StartRenderLoop();
         
-        Stop_HL1->Visibility = Windows::UI::Xaml::Visibility::Visible;
+        Stop->Visibility = Windows::UI::Xaml::Visibility::Visible;
     }
 }
 
-void RemotingPage::Start_Click_HL2(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
-{/*
-	{
-		critical_section::scoped_lock lock(m_criticalSection);
-
-		if (m_connectedState == true)
-		{
-			// Already trying to connect - return "true" to break out of loop.
-			return;
-		}
-		else
-		{
-			m_connectedState = true;
-		}
-	}
-
-	if (!m_ipAddress_HL1)
-	{
-		ConsoleLog(Console, L"Error: Please set an IP address.");
-	}
-	else
-	{
-		Start_HL2->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
-		ipAddress_HL2->IsEnabled = false;
-
-		while (!ConnectToRemoteDevice());
-		StartRenderLoop();
-
-		Stop_HL2->Visibility = Windows::UI::Xaml::Visibility::Visible;
-	}
-*/}
-
-void RemotingPage::Stop_Click_HL1(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
+void RemotingPage::Stop_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
     {
         critical_section::scoped_lock lock(m_criticalSection);
@@ -380,22 +348,18 @@ void RemotingPage::Stop_Click_HL1(Platform::Object^ sender, Windows::UI::Xaml::R
         }
     }
 
-    Stop_HL1->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
+    Stop->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
     
     DisconnectFromRemoteDevice();
     StopRenderLoop();
     
-    Start_HL1->Visibility = Windows::UI::Xaml::Visibility::Visible;
-    ipAddress_HL1->IsEnabled = true;
-}
-
-void RemotingPage::Stop_Click_HL2(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
-{
+    Start->Visibility = Windows::UI::Xaml::Visibility::Visible;
+    ipAddress->IsEnabled = true;
 }
 
 void RemotingPage::ipAddress_TextChanged(Platform::Object^ sender, Windows::UI::Xaml::Controls::TextChangedEventArgs^ e)
 {
-    m_ipAddress_HL1 = ipAddress_HL1->Text;
+    m_ipAddress = ipAddress->Text;
 }
 
 void RemotingPage::StartRenderLoop()
