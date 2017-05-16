@@ -56,8 +56,7 @@ namespace RemotingHostSample
 		void Start_Click_HL2(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
 		void Stop_Click_HL1(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
 		void Stop_Click_HL2(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
-		void ipAddress_TextChanged_HL1(Platform::Object^ sender, Windows::UI::Xaml::Controls::TextChangedEventArgs^ e);
-		void ipAddress_TextChanged_HL2(Platform::Object^ sender, Windows::UI::Xaml::Controls::TextChangedEventArgs^ e);
+		void ipAddress_TextChanged(Platform::Object^ sender, Windows::UI::Xaml::Controls::TextChangedEventArgs^ e);
 
         // Private methods for remoting.
         bool ConnectToRemoteDevice();
@@ -69,7 +68,6 @@ namespace RemotingHostSample
         std::shared_ptr<DX::DeviceResourcesWindowed>        m_deviceResources;
         RemotingHostSample::AppView^                        m_appView;
         Platform::String^                                   m_ipAddress_HL1;
-        Platform::String^                                   m_ipAddress_HL2;
         Microsoft::Holographic::HolographicStreamerHelpers^ m_streamerHelpers;
 
         int  m_width                = 0;

@@ -335,7 +335,7 @@ void RemotingPage::Start_Click_HL1(Platform::Object^ sender, Windows::UI::Xaml::
 }
 
 void RemotingPage::Start_Click_HL2(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
-{
+{/*
 	{
 		critical_section::scoped_lock lock(m_criticalSection);
 
@@ -350,7 +350,7 @@ void RemotingPage::Start_Click_HL2(Platform::Object^ sender, Windows::UI::Xaml::
 		}
 	}
 
-	if (!m_ipAddress_HL2)
+	if (!m_ipAddress_HL1)
 	{
 		ConsoleLog(Console, L"Error: Please set an IP address.");
 	}
@@ -364,7 +364,7 @@ void RemotingPage::Start_Click_HL2(Platform::Object^ sender, Windows::UI::Xaml::
 
 		Stop_HL2->Visibility = Windows::UI::Xaml::Visibility::Visible;
 	}
-}
+*/}
 
 void RemotingPage::Stop_Click_HL1(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
@@ -391,35 +391,11 @@ void RemotingPage::Stop_Click_HL1(Platform::Object^ sender, Windows::UI::Xaml::R
 
 void RemotingPage::Stop_Click_HL2(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
-	{
-		critical_section::scoped_lock lock(m_criticalSection);
-		if (m_connectedState == false)
-		{
-			return;
-		}
-		else
-		{
-			m_connectedState = false;
-		}
-	}
-
-	Stop_HL1->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
-
-	DisconnectFromRemoteDevice();
-	StopRenderLoop();
-
-	Start_HL1->Visibility = Windows::UI::Xaml::Visibility::Visible;
-	ipAddress_HL1->IsEnabled = true;
 }
 
-void RemotingPage::ipAddress_TextChanged_HL1(Platform::Object^ sender, Windows::UI::Xaml::Controls::TextChangedEventArgs^ e)
+void RemotingPage::ipAddress_TextChanged(Platform::Object^ sender, Windows::UI::Xaml::Controls::TextChangedEventArgs^ e)
 {
     m_ipAddress_HL1 = ipAddress_HL1->Text;
-}
-
-void RemotingPage::ipAddress_TextChanged_HL2(Platform::Object^ sender, Windows::UI::Xaml::Controls::TextChangedEventArgs^ e)
-{
-	m_ipAddress_HL2 = ipAddress_HL2->Text;
 }
 
 void RemotingPage::StartRenderLoop()
