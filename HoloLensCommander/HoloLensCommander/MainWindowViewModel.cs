@@ -262,6 +262,12 @@ namespace HoloLensCommander
                     this.UninstallApp();
                 });
 
+            this.UninstallAllAppsCommand = new Command(
+                (parameter) =>
+                {
+                    this.UninstallAllApps();
+                });
+
             this.UseAllDevicesFilterCommand = new Command(
                 (parameter) =>
                 {
@@ -278,6 +284,12 @@ namespace HoloLensCommander
                 (parameter) =>
                 {
                     this.SelectionFilter = DeviceFilters.HoloLens;
+                });
+
+            this.WipeCameraRollCommand = new Command(
+                (parameter) =>
+                {
+                    this.WipeCameraRoll();
                 });
         }
 

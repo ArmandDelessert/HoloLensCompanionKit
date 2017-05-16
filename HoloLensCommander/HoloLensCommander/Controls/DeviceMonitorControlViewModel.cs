@@ -261,6 +261,31 @@ namespace HoloLensCommander
         }
 
         /// <summary>
+        /// Wipes camera roll contents on this device.
+        /// </summary>
+        /// <returns>Task object used for tracking method completion.</returns>
+        internal async Task WipeCameraRollAsync()
+        {
+            if (this.IsConnected && this.IsSelected)
+            {
+                try
+                {
+                    MrcFileList fileList = await this.deviceMonitor.GetMixedRealityFileListAsync();
+
+                    foreach (MrcFileInformation fileInfo in fileList.Files)
+                    {
+                        await this.deviceMonitor.DeleteMixedRealityFile(fileInfo.FileName);
+                    }
+                    this.StatusMessage = "Camera roll wiped successfully.";
+                }
+                catch (Exception e)
+                {
+                    this.StatusMessage = string.Format("Unable to delete all camera roll files. {0} ", e.Message);
+                }
+            }
+        }
+
+        /// <summary>
         /// Launches an applicaiton on this device.
         /// </summary>
         /// <param name="appName">The name of the application to launch.</param>
@@ -504,6 +529,35 @@ namespace HoloLensCommander
                         "Failed to uninstall {0} - {1}",
                         appName,
                         e.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Uninstalls all side-loaded apps on selected devices
+        /// </summary>
+        /// <returns></returns>
+        internal async Task UninstallAllAppsAsync()
+        {
+            if (this.IsConnected && this.IsSelected)
+            {
+                try
+                {
+                    AppPackages installedApps = await this.deviceMonitor.GetInstalledApplicationsAsync();
+                    foreach (PackageInfo packageInfo in installedApps.Packages)
+                    {
+                        if (packageInfo.IsSideloaded())
+                        {
+                            await this.deviceMonitor.UninstallApplicationAsync(packageInfo.FullName);
+                        }
+                    }
+                    this.StatusMessage = "Successfully uninstalled all apps.";
+
+                    this.deviceMonitorControl.NotifyAppUninstall();
+                }
+                catch (Exception e)
+                {
+                    this.StatusMessage = string.Format("Failed to uninstall all apps. {0} ", e.Message);
                 }
             }
         }
