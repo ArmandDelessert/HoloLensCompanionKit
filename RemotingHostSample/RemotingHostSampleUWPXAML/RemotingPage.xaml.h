@@ -31,7 +31,7 @@ namespace RemotingHostSample
     public ref class RemotingPage sealed
     {
     public:
-        RemotingPage(/*RemotingHostSample::AppView^ appView, bool isMain*/);
+        RemotingPage(RemotingHostSample::AppView^ appView, bool isMain);
         virtual ~RemotingPage();
 
         void SaveInternalState(Windows::Foundation::Collections::IPropertySet^ state);

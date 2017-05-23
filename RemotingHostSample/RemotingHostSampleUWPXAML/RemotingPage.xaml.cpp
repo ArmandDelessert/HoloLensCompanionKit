@@ -52,7 +52,7 @@ using namespace Windows::UI::Xaml::Input;
 using namespace Windows::UI::Xaml::Media;
 using namespace Windows::UI::Xaml::Navigation;
 
-RemotingPage::RemotingPage(/*RemotingHostSample::AppView^ appView, bool isMain*/)
+RemotingPage::RemotingPage(RemotingHostSample::AppView^ appView, bool isMain)
 {
     InitializeComponent();
 
@@ -79,7 +79,7 @@ RemotingPage::RemotingPage(/*RemotingHostSample::AppView^ appView, bool isMain*/
     swapChainPanel->SizeChanged +=
         ref new SizeChangedEventHandler(this, &RemotingPage::OnSwapChainPanelSizeChanged);
     
-//    m_appView = appView;
+    //m_appView = appView;
 	m_appView = ref new RemotingHostSample::AppView();
 
 	this->isMain = isMain;
