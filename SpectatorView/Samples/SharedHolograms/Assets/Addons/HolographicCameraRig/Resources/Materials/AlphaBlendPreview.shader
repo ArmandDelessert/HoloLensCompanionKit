@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 Shader "Hidden/AlphaBlendPreview"
@@ -15,6 +17,7 @@ Shader "Hidden/AlphaBlendPreview"
         _FlipVideo("FlipVideo", int) = 0
         // Flip R and B
         _RGBA("RGBA", int) = 0
+        _Brightness("Brightness", float) = 1.0
     }
     SubShader
     {
@@ -45,7 +48,7 @@ Shader "Hidden/AlphaBlendPreview"
             v2f vert(appdata v)
             {
                 v2f o;
-                o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
+                o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv;
                 return o;
             }
@@ -59,6 +62,7 @@ Shader "Hidden/AlphaBlendPreview"
             int _SwapBackgroundRB;
             int _FlipVideo;
             int _RGBA;
+            float _Brightness;
 
             fixed4 fragYUV(v2f i)
             {
@@ -83,6 +87,7 @@ Shader "Hidden/AlphaBlendPreview"
                     val = 1;
                 }
             fixed4 backCol = GetRGBA(yuvPixel, val);
+            backCol.rgba *= _Brightness;
 
                 if (_SwapBackgroundRB == 0)
                 {
@@ -109,6 +114,7 @@ Shader "Hidden/AlphaBlendPreview"
                 }
 
                 fixed4 backCol = tex2D(_MainTex, i.uv);
+                backCol.rgba *= _Brightness;
 
                 if (_SwapBackgroundRB == 0)
                 {

@@ -3,12 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Security.Cryptography.Certificates;
+using Windows.UI.Core;
 using Microsoft.Tools.WindowsDevicePortal;
 using static Microsoft.Tools.WindowsDevicePortal.DevicePortal;
-using Windows.UI.Core;
 
 namespace HoloLensCommander
 {
@@ -20,46 +21,79 @@ namespace HoloLensCommander
         /// <summary>
         /// Connects to a device.
         /// </summary>
-        /// <param name="connectOptions">Options that specify how the connection is to be established.</param>
+        /// <param name="options">Options that specify how the connection is to be established.</param>
         /// <returns></returns>
         public async Task ConnectAsync(
-            ConnectOptions connectOptions)
+            ConnectOptions options)
         {
-            string address = connectOptions.Address.ToLower();
+            this.connectOptions = options;
+
+            string address = this.connectOptions.Address.ToLower();
 
             if (!address.StartsWith("http"))
             {
                 string scheme = "https";
 
-                if ((address == DefaultConnectionAddress) ||
-                    (address == DefaultConnectionAddressAsIp))
+                if (string.Equals(address, DefaultConnectionAddress) ||
+                    string.Equals(address, DefaultConnectionAddressAsIp))
                 {
-                    scheme = "http";   
+                    scheme = "http";
                 }
 
                 address = string.Format(
-                    "{0}://{1}", 
-                    scheme, 
+                    "{0}://{1}",
+                    scheme,
                     address);
+            }
+
+            if (this.connectOptions.ConnectingToDesktopPC)
+            {
+                string s = address.Substring(address.IndexOf("//"));
+                if (!s.Contains(":"))
+                {
+                    // Append the default Windows Device Portal port for Desktop PC connections.
+                    address += ":50443";
+                }
             }
 
             this.devicePortalConnection = new DefaultDevicePortalConnection(
                     address,
-                    connectOptions.UserName,
-                    connectOptions.Password);
-            DevicePortal portal = new DevicePortal(this.devicePortalConnection);
-            portal.ConnectionStatus += DevicePortal_ConnectionStatus;
+                    this.connectOptions.UserName,
+                    this.connectOptions.Password);
+            this.devicePortal = new DevicePortal(this.devicePortalConnection);
 
-            // We are physically connected to the device.
-            // We can safely accept the device's root certificate.
-            Certificate certificate = await portal.GetRootDeviceCertificateAsync(true);
+            await this.CheckHeartbeatAsync();
+        }
 
-            // Establish the connection to the device.
-            await portal.ConnectAsync(
-                connectOptions.Ssid,
-                connectOptions.NetworkKey,
-                updateConnection: connectOptions.UpdateConnection,
-                manualCertificate: certificate);
+        /// <summary>
+        /// Establish a connection to the device.
+        /// </summary>
+        /// <returns></returns>
+        /// <returns>Task object used for tracking method completion.</returns>
+        internal async Task EstablishConnection()
+        {
+            try
+            {
+                Certificate certificate = null;
+
+                if (!this.connectOptions.UseInstalledCertificate)
+                {
+                    // Get the device certificate
+                    certificate = await this.devicePortal.GetRootDeviceCertificateAsync(true);
+                }
+
+                // Establish the connection to the device.
+                this.devicePortal.ConnectionStatus += DevicePortal_ConnectionStatus;
+                Task t = this.devicePortal.ConnectAsync(
+                    this.connectOptions.Ssid,
+                    this.connectOptions.NetworkKey,
+                    updateConnection: this.connectOptions.UpdateConnection,
+                    manualCertificate: certificate);
+            }
+            catch
+            {
+                this.firstContact = false;
+            }
         }
 
         /// <summary>
@@ -74,20 +108,29 @@ namespace HoloLensCommander
             if (args.Status == DeviceConnectionStatus.Connected)
             {
                 // Connection successfully established.
+                this.firstContact = true;
                 this.devicePortal = sender;
                 this.devicePortal.AppInstallStatus += DevicePortal_AppInstallStatus;
-
-                // Start the heartbeat.
-                Task t = CheckHeartbeatAsync();
-                t.Wait();
-
                 this.devicePortal.ConnectionStatus -= DevicePortal_ConnectionStatus;
+
+                if (this.connectOptions.DeployNameToDevice)
+                {
+                    Task.Run(
+                        async () =>
+                        {
+                            if (await this.SetDeviceNameAsync(this.connectOptions.Name))
+                            {
+                                await this.RebootAsync();
+                            }
+                        });
+                }
             }
             else if (args.Status == DeviceConnectionStatus.Failed)
             {
+                // Connection failed.
+                this.firstContact = false;
                 this.devicePortal.ConnectionStatus -= DevicePortal_ConnectionStatus;
 
-                // Connection failed.
                 throw new Exception(args.Message);
             }
         }
@@ -111,6 +154,39 @@ namespace HoloLensCommander
             this.heartbeatTimer.Change(
                 Timeout.Infinite,
                 Timeout.Infinite);
+        }
+
+        /// <summary>
+        /// Find the installed application name that is associated with the specified package name.
+        /// </summary>
+        /// <param name="packageName">Name of the application package.</param>
+        /// <returns>The application display name, or null if not found.</returns>
+        private async Task<string> FindAppNameFromPackageName(string packageName)
+        {
+            string appName = null;
+
+            // Get the collection of installed applications.
+            AppPackages apps = await this.GetInstalledApplicationsAsync();
+
+            // Remove the version/plaform from the package name and squash 
+            string squashedPackageName = SquashPackageName(packageName);
+
+            foreach (PackageInfo package in apps.Packages)
+            {
+                // Squash the name so there are no underscores or spaces
+                string squashedName = SquashName(package.FamilyName);
+
+
+                // Try to match with the squashed package name
+                if (squashedPackageName == squashedName)
+                {
+                    appName = package.Name;
+                    break;
+                }
+            }
+
+            // Return the un-squashed name
+            return appName;
         }
 
         /// <summary>
@@ -161,8 +237,8 @@ namespace HoloLensCommander
             return this.devicePortal.GetLowResolutionMrcLiveStreamUri(
                 true,   // Include holograms.
                 true,   // Include color camera.
-                true,  // Include microphone.
-                true); // Include application audio.
+                true,   // Include microphone.
+                true);  // Include application audio.
         }
 
         /// <summary>
@@ -184,8 +260,10 @@ namespace HoloLensCommander
             await Task.Run(
                 async () =>
                 {
+                    string appName = await this.FindAppNameFromPackageName(installFiles.AppPackageFile.Name);
+
                     await this.devicePortal.InstallApplicationAsync(
-                        null,
+                        appName,
                         installFiles.AppPackageFile,
                         installFiles.AppDependencyFiles,
                         installFiles.AppCertificateFile);
@@ -213,7 +291,27 @@ namespace HoloLensCommander
         /// <returns>Task object used for tracking method completion.</returns>
         public async Task RebootAsync()
         {
-            await this.devicePortal.RebootAsync();    
+            await this.devicePortal.RebootAsync();
+
+            // Force re-establishing the connection.
+            // This is needed in case the device's name has been changed.
+            this.firstContact = false;
+        }
+
+        /// <summary>
+        /// Set the name of the device.
+        /// </summary>
+        /// <param name="name">The new name for the device.</param>
+        /// <returns>Task object used for tracking method completion.</returns>
+        /// <remarks>The name change does not go into effect until the device has been rebooted.</remarks>
+        public async Task<bool> SetDeviceNameAsync(string name)
+        {
+            if (string.Equals(this.MachineName, name)) { return false; }
+
+            await this.devicePortal.SetDeviceNameAsync(name);
+            this.MachineName = name;
+
+            return true;
         }
 
         /// <summary>
@@ -233,6 +331,47 @@ namespace HoloLensCommander
         public async Task ShutdownAsync()
         {
             await this.devicePortal.ShutdownAsync();    
+        }
+
+        /// <summary>
+        /// Returns a "compressed" (spaces and underscores removed) string.
+        /// </summary>
+        /// <param name="name">The name to squash.</param>
+        /// <returns>The modified name.</returns>
+        private string SquashName(string name)
+        {
+            string squashedName = name;
+
+            squashedName = squashedName.Replace(" ", "");
+            squashedName = squashedName.Replace("_", "");
+
+            return squashedName;
+        }
+
+        /// <summary>
+        /// Returns a "compressed" (spaces, underscores, version and platform info removed) version of a package name
+        /// </summary>
+        /// <param name="name">The package name to squash.</param>
+        /// <returns>The modified package name.</returns>
+        private string SquashPackageName(string name)
+        {
+            string squashedName = "";
+            int versionIndex = -1;
+
+            string[] nameParts = name.Split('_');
+            for (int i = 0; i < nameParts.Length; i++)
+            {
+                Version v;
+                if (Version.TryParse(nameParts[i], out v))
+                {
+                    versionIndex = i;
+                    break;
+                }
+
+                squashedName += nameParts[i];
+            }
+
+            return squashedName;
         }
 
         /// <summary>
@@ -265,10 +404,15 @@ namespace HoloLensCommander
         {
             RunningProcesses runningApps = await this.GetRunningProcessesAsync();
 
+            List<string> doNotClose = new List<string>();
+            doNotClose.AddRange(DoNotCloseApps);
+
             foreach (DeviceProcessInfo processInfo in runningApps.Processes)
             {
-                // Do not terminate the shell.
-                if (ShellApp.ToLower() == processInfo.Name.ToLower())
+                // Skip applications that should not be closed.
+                if (doNotClose.Contains(
+                    processInfo.Name, 
+                    StringComparer.OrdinalIgnoreCase))
                 {
                     continue;
                 }

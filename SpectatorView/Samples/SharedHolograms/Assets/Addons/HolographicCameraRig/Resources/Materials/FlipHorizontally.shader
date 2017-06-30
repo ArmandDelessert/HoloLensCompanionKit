@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 Shader "Hidden/FlipHorizontally"
@@ -11,6 +13,7 @@ Shader "Hidden/FlipHorizontally"
         _Height("Height", int) = 0
         // Flip R and B
         _RGBA("RGBA", int) = 0
+        _Brightness("Brightness", float) = 1.0
     }
     SubShader
     {
@@ -39,7 +42,7 @@ Shader "Hidden/FlipHorizontally"
             v2f vert (appdata v)
             {
                 v2f o;
-                o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
+                o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv;
                 return o;
             }
@@ -49,6 +52,7 @@ Shader "Hidden/FlipHorizontally"
             int _Width;
             int _Height;
             int _RGBA;
+            float _Brightness;
 
             fixed4 fragYUV(v2f i)
             {
@@ -67,13 +71,17 @@ Shader "Hidden/FlipHorizontally"
                 {
                     val = 1;
                 }
-                return GetRGBA(yuvPixel, val);
+                fixed4 color = GetRGBA(yuvPixel, val);
+                color *= _Brightness;
+                return color;
             }
 
             fixed4 fragRGBA(v2f i)
             {
                 i.uv.y = 1 - i.uv.y;
-                return tex2D(_MainTex, i.uv);
+                fixed4 color = tex2D(_MainTex, i.uv);
+                color *= _Brightness;
+                return color;
             }
 
             fixed4 frag (v2f i) : SV_Target
@@ -92,6 +100,8 @@ Shader "Hidden/FlipHorizontally"
                 {
                     color.rgba = color.bgra;
                 }
+
+                color *= _Brightness;
 
                 return color;
             }
