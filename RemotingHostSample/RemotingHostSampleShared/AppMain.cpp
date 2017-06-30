@@ -523,4 +523,3 @@ void AppMain::OnCameraRemoved(
     // not take long.
     m_deviceResources->RemoveHolographicCamera(args->Camera);
 }
-

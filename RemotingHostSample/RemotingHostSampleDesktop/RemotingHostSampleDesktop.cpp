@@ -104,7 +104,6 @@ void DesktopWindow::InitializeHwnd(HWND hWnd)
     auto lock = m_deviceLock.Lock();
 
     m_hWnd = hWnd;
-
 }
 
 _Use_decl_annotations_
